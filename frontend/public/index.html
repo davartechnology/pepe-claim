@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>PEPE CLAIM</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===== HEADER / BALANCE HERO ===== -->
+  <header class="balance-card">
+    <div class="balance-card__top">
+      <span class="balance-card__label">SOLDE</span>
+      <span class="balance-card__username" id="username">@chargement...</span>
+    </div>
+    <div class="balance-card__amount">
+      <span id="balanceValue">0</span>
+      <span class="balance-card__unit">PEPE</span>
+    </div>
+    <div class="balance-card__stats">
+      <div class="stat">
+        <span class="stat__value" id="claimsRemaining">--</span>
+        <span class="stat__label">Claims restants</span>
+      </div>
+      <div class="stat">
+        <span class="stat__value" id="todaysEarnings">--</span>
+        <span class="stat__label">Gains aujourd'hui</span>
+      </div>
+      <div class="stat">
+        <span class="stat__value" id="referralCount">--</span>
+        <span class="stat__label">Filleuls</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== SCREENS ===== -->
+  <main id="screens">
+
+    <!-- HOME -->
+    <section class="screen active" id="screen-home">
+      <div class="action-grid">
+        <button class="action-btn action-btn--primary" data-nav="claim">
+          <span class="action-btn__icon">🎬</span>
+          <span class="action-btn__label">Claim 100 PEPE</span>
+        </button>
+        <button class="action-btn" data-nav="bonus">
+          <span class="action-btn__icon">🎁</span>
+          <span class="action-btn__label">Daily Bonus</span>
+        </button>
+        <button class="action-btn" data-nav="referrals">
+          <span class="action-btn__icon">👥</span>
+          <span class="action-btn__label">Referrals</span>
+        </button>
+        <button class="action-btn" data-nav="withdraw">
+          <span class="action-btn__icon">💸</span>
+          <span class="action-btn__label">Withdraw</span>
+        </button>
+        <button class="action-btn" data-nav="games">
+          <span class="action-btn__icon">🏆</span>
+          <span class="action-btn__label">Games</span>
+        </button>
+        <button class="action-btn" data-nav="history">
+          <span class="action-btn__icon">📜</span>
+          <span class="action-btn__label">History</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- CLAIM -->
+    <section class="screen" id="screen-claim">
+      <h2 class="screen-title">🎬 Claim Reward</h2>
+      <div class="card card--centered">
+        <div class="reward-display">
+          <span class="reward-display__value">100</span>
+          <span class="reward-display__unit">PEPE</span>
+        </div>
+        <div class="claim-meta">
+          <div class="claim-meta__row">
+            <span>Claims Remaining</span>
+            <strong id="claimStatusRemaining">--/52</strong>
+          </div>
+          <div class="claim-meta__row">
+            <span>Next Recharge</span>
+            <strong id="claimStatusRecharge">--:--</strong>
+          </div>
+        </div>
+        <button class="btn btn--primary btn--full" id="btnWatchAd">Regarder une pub & Claim</button>
+        <p class="hint" id="claimHint"></p>
+      </div>
+    </section>
+
+    <!-- DAILY BONUS -->
+    <section class="screen" id="screen-bonus">
+      <h2 class="screen-title">🎁 Daily Bonus</h2>
+      <div class="card card--centered">
+        <p class="bonus-text">Une récompense aléatoire entre <strong>1</strong> et <strong>20 PEPE</strong>, toutes les 24h.</p>
+        <button class="btn btn--gold btn--full" id="btnClaimBonus">Réclamer le Bonus</button>
+        <p class="hint" id="bonusHint"></p>
+      </div>
+    </section>
+
+    <!-- REFERRALS -->
+    <section class="screen" id="screen-referrals">
+      <h2 class="screen-title">👥 My Referral Link</h2>
+      <div class="card">
+        <div class="referral-link-box">
+          <input type="text" id="referralLinkInput" readonly />
+          <button class="btn btn--small" id="btnCopyLink">Copier</button>
+        </div>
+      </div>
+      <div class="referral-levels">
+        <div class="level-card">
+          <span class="level-card__label">Level 1 (15%)</span>
+          <span class="level-card__value" id="level1Count">0</span>
+        </div>
+        <div class="level-card">
+          <span class="level-card__label">Level 2 (10%)</span>
+          <span class="level-card__value" id="level2Count">0</span>
+        </div>
+        <div class="level-card">
+          <span class="level-card__label">Level 3 (5%)</span>
+          <span class="level-card__value" id="level3Count">0</span>
+        </div>
+      </div>
+      <div class="card card--centered">
+        <span class="hint">Gains de parrainage totaux</span>
+        <div class="reward-display reward-display--small">
+          <span class="reward-display__value" id="referralEarningsValue">0</span>
+          <span class="reward-display__unit">PEPE</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- BALANCE -->
+    <section class="screen" id="screen-balance">
+      <h2 class="screen-title">💰 Balance</h2>
+      <div class="card">
+        <div class="info-row"><span>User ID</span><strong id="infoUserId">--</strong></div>
+        <div class="info-row"><span>Current Balance</span><strong id="infoBalance">--</strong></div>
+        <div class="info-row"><span>Total Claims</span><strong id="infoTotalClaims">--</strong></div>
+        <div class="info-row"><span>Total Bonus Earned</span><strong id="infoTotalBonus">--</strong></div>
+        <div class="info-row"><span>Total Referral Earnings</span><strong id="infoTotalReferral">--</strong></div>
+        <div class="info-row info-row--highlight"><span>Withdrawable Balance</span><strong id="infoWithdrawable">--</strong></div>
+      </div>
+    </section>
+
+    <!-- WITHDRAW -->
+    <section class="screen" id="screen-withdraw">
+      <h2 class="screen-title">💸 Withdraw</h2>
+      <div class="card">
+        <p class="hint">Retrait minimum : <strong>3000 PEPE</strong> — paiement automatique via FaucetPay.</p>
+        <label class="field-label">Adresse / Email FaucetPay</label>
+        <input type="text" id="withdrawWallet" placeholder="vous@exemple.com" />
+        <label class="field-label">Montant (PEPE)</label>
+        <input type="number" id="withdrawAmount" placeholder="3000" min="3000" />
+        <button class="btn btn--primary btn--full" id="btnWithdraw">Envoyer la demande</button>
+        <p class="hint" id="withdrawHint"></p>
+      </div>
+    </section>
+
+    <!-- GAMES -->
+    <section class="screen" id="screen-games">
+      <h2 class="screen-title">🏆 Games</h2>
+
+      <div class="game-card" id="gameCoinflip">
+        <h3>🪙 Coin Flip <span class="game-card__multiplier">x2</span></h3>
+        <div class="game-choice-row">
+          <button class="choice-btn" data-choice="heads">Heads</button>
+          <button class="choice-btn" data-choice="tails">Tails</button>
+        </div>
+        <input type="number" class="bet-input" placeholder="Mise (min 100)" min="100" />
+        <button class="btn btn--primary btn--full play-btn" data-game="coinflip">Jouer</button>
+        <p class="game-result"></p>
+      </div>
+
+      <div class="game-card" id="gameDice">
+        <h3>🎲 Dice <span class="game-card__multiplier">x2</span></h3>
+        <p class="hint">Gagne sur 4, 5 ou 6</p>
+        <input type="number" class="bet-input" placeholder="Mise (min 100)" min="100" />
+        <button class="btn btn--primary btn--full play-btn" data-game="dice">Jouer</button>
+        <p class="game-result"></p>
+      </div>
+
+      <div class="game-card" id="gameLucky">
+        <h3>🎯 Lucky Number <span class="game-card__multiplier">x5</span></h3>
+        <select class="choice-select">
+          <option value="">Choisissez 1 à 10</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+        <input type="number" class="bet-input" placeholder="Mise (min 100)" min="100" />
+        <button class="btn btn--primary btn--full play-btn" data-game="lucky_number">Jouer</button>
+        <p class="game-result"></p>
+      </div>
+
+      <div class="game-card" id="gameSlots">
+        <h3>🎰 PEPE Slots <span class="game-card__multiplier">x10</span></h3>
+        <input type="number" class="bet-input" placeholder="Mise (min 100)" min="100" />
+        <button class="btn btn--primary btn--full play-btn" data-game="slots">Jouer</button>
+        <p class="game-result"></p>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="screen" id="screen-history">
+      <h2 class="screen-title">📜 History</h2>
+      <div class="history-list" id="historyList">
+        <p class="hint">Chargement de l'historique...</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== BOTTOM NAV ===== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-nav="home"><span>🏠</span><small>Home</small></button>
+    <button class="nav-btn" data-nav="referrals"><span>👥</span><small>Referrals</small></button>
+    <button class="nav-btn" data-nav="games"><span>🏆</span><small>Games</small></button>
+    <button class="nav-btn" data-nav="balance"><span>💰</span><small>Balance</small></button>
+    <button class="nav-btn" data-nav="history"><span>📜</span><small>History</small></button>
+  </nav>
+
+  <!-- ===== TOAST ===== -->
+  <div id="toast" class="toast"></div>
+
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/telegram.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
