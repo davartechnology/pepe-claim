@@ -2,7 +2,7 @@
  * Wrapper centralisé pour tous les appels au backend PEPE CLAIM.
  * Remplacez API_BASE_URL par l'URL de votre backend Railway une fois déployé.
  */
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'https://pepe-claim-production.up.railway.app/api';
 
 async function apiRequest(path, { method = 'GET', body = null } = {}) {
     const headers = {
