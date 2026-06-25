@@ -21,7 +21,7 @@ async function getReferralInfo(req, res) {
         const totalEarnings = earningsRows.reduce((sum, row) => sum + Number(row.reward), 0);
 
         const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'PEPECLAIMBOT';
-        const referralLink = `https://t.me/${botUsername}?start=${user.id}`;
+        const referralLink = `https://t.me/${botUsername}?startapp=${user.id}`;
 
         return res.json({
             referralLink,
