@@ -15,7 +15,7 @@ async function loadDashboard() {
         document.getElementById('referralCount').textContent = data.referralCount;
     } catch (err) {
         console.error('Erreur chargement dashboard:', err);
-        showToast('Erreur de connexion au serveur', true);
+        showToast(`Erreur: ${err.message} (status: ${err.status || 'N/A'})`, true);
     }
 }
 
