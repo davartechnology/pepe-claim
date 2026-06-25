@@ -310,4 +310,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCoinflipChoices();
     setupGameButtons();
     loadDashboard();
+
+// ===== DEBUG TEMPORAIRE - À RETIRER APRÈS TEST =====
+setTimeout(() => {
+    const debugInfo = {
+        start_param: window.Telegram?.WebApp?.initDataUnsafe?.start_param || 'UNDEFINED',
+        initData_raw: window.Telegram?.WebApp?.initData || 'EMPTY'
+    };
+    showToast(`start_param: ${debugInfo.start_param}`, false);
+    console.log('DEBUG initData complet:', debugInfo.initData_raw);
+}, 1500);
+    
 });
