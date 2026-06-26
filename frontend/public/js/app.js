@@ -46,16 +46,10 @@ async function loadClaimStatus() {
     }
 }
 
-/**
- * Simule l'affichage d'une pub vidéo via la régie disponible.
- * TODO: remplacer ce setTimeout par le vrai SDK de chaque régie
- * (TADS, Adexium, Adsxuit, Adsmone) une fois les comptes/scripts fournis.
- * Le SDK doit appeler resolve() uniquement quand la pub a été vue ENTIÈREMENT.
- */
 function watchAd(networkKey) {
     return new Promise((resolve) => {
         showToast(`Chargement pub via ${networkKey}...`);
-        setTimeout(() => resolve(true), 2000); // simulation 2s
+        setTimeout(() => resolve(true), 2000);
     });
 }
 
@@ -72,7 +66,6 @@ async function handleWatchAdAndClaim() {
             return;
         }
 
-        // Priorité : TADS -> Adexium -> Adsxuit -> Adsmone
         const network = networks[0];
         await watchAd(network.key);
 
@@ -197,36 +190,91 @@ async function handleWithdraw() {
     }
 }
 
-// ===== ÉCRAN: GAMES =====
-function setupCoinflipChoices() {
-    document.querySelectorAll('#gameCoinflip .choice-btn').forEach((btn) => {
+// ===== GAMES: NAVIGATION VERS CHAQUE JEU =====
+function setupGameMenuNavigation() {
+    document.querySelectorAll('[data-game-nav]').forEach((btn) => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('#gameCoinflip .choice-btn').forEach((b) => b.classList.remove('selected'));
+            const game = btn.dataset.gameNav;
+            const screenMap = {
+                coinflip: 'game-coinflip',
+                dice: 'game-dice',
+                lucky_number: 'game-lucky',
+                slots: 'game-slots'
+            };
+            navigateToGameScreen(screenMap[game]);
+        });
+    });
+}
+
+function navigateToGameScreen(screenId) {
+    document.querySelectorAll('.screen').forEach((el) => el.classList.remove('active'));
+    document.getElementById(`screen-${screenId}`).classList.add('active');
+}
+
+// ===== GAMES: COIN FLIP =====
+function setupCoinflipChoices() {
+    document.querySelectorAll('#screen-game-coinflip .choice-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#screen-game-coinflip .choice-btn').forEach((b) => b.classList.remove('selected'));
             btn.classList.add('selected');
             selectedCoinflipChoice = btn.dataset.choice;
         });
     });
 }
 
-async function handlePlayGame(gameType, cardEl, btn) {
-    const betInput = cardEl.querySelector('.bet-input');
-    const betAmount = Number(betInput.value);
-    const resultEl = cardEl.querySelector('.game-result');
+async function playCoinflip(btn) {
+    const betAmount = Number(document.getElementById('betCoinflip').value);
+    const resultEl = document.getElementById('resultCoinflip');
+    const coin = document.getElementById('coinflipCoin');
 
-    let choice = null;
-    if (gameType === 'coinflip') {
-        choice = selectedCoinflipChoice;
-        if (!choice) {
-            resultEl.textContent = 'Choisissez Heads ou Tails';
-            return;
-        }
-    } else if (gameType === 'lucky_number') {
-        choice = Number(cardEl.querySelector('.choice-select').value);
-        if (!choice) {
-            resultEl.textContent = 'Choisissez un nombre entre 1 et 10';
-            return;
-        }
+    if (!selectedCoinflipChoice) {
+        resultEl.textContent = 'Choisissez Heads ou Tails';
+        return;
     }
+    if (!betAmount || betAmount < 100) {
+        resultEl.textContent = 'Mise minimum : 100 PEPE';
+        return;
+    }
+
+    setButtonLoading(btn, true, 'En cours...');
+    resultEl.textContent = '';
+    coin.classList.remove('show-heads', 'show-tails');
+    coin.classList.add('flipping');
+
+    try {
+        const result = await api.playGame('coinflip', betAmount, selectedCoinflipChoice);
+
+        setTimeout(() => {
+            coin.classList.remove('flipping');
+            coin.classList.add(result.outcome === 'heads' ? 'show-heads' : 'show-tails');
+
+            if (result.win) {
+                resultEl.textContent = `🎉 ${result.outcome.toUpperCase()} ! Gagné +${formatNumber(result.winAmount)} PEPE`;
+                resultEl.style.color = 'var(--green)';
+                telegramHapticSuccess();
+            } else {
+                resultEl.textContent = `${result.outcome.toUpperCase()}... Perdu`;
+                resultEl.style.color = 'var(--danger)';
+                telegramHapticError();
+            }
+            pulseBalance();
+            loadDashboard();
+            setButtonLoading(btn, false);
+        }, 1400);
+    } catch (err) {
+        coin.classList.remove('flipping');
+        resultEl.textContent = err.message || 'Erreur lors du jeu';
+        resultEl.style.color = 'var(--danger)';
+        setButtonLoading(btn, false);
+    }
+}
+
+// ===== GAMES: DICE =====
+async function playDice(btn) {
+    const betAmount = Number(document.getElementById('betDice').value);
+    const resultEl = document.getElementById('resultDice');
+    const die = document.getElementById('diceCube');
+    const diceFaces = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
     if (!betAmount || betAmount < 100) {
         resultEl.textContent = 'Mise minimum : 100 PEPE';
@@ -235,36 +283,149 @@ async function handlePlayGame(gameType, cardEl, btn) {
 
     setButtonLoading(btn, true, 'En cours...');
     resultEl.textContent = '';
+    die.classList.add('rolling');
 
     try {
-        const result = await api.playGame(gameType, betAmount, choice);
+        const result = await api.playGame('dice', betAmount);
 
-        if (result.win) {
-            resultEl.textContent = `🎉 Gagné ! +${formatNumber(result.winAmount)} PEPE`;
-            resultEl.style.color = 'var(--green)';
-            telegramHapticSuccess();
-        } else {
-            resultEl.textContent = `Perdu... Résultat: ${result.outcome}`;
-            resultEl.style.color = 'var(--danger)';
-            telegramHapticError();
-        }
+        setTimeout(() => {
+            die.classList.remove('rolling');
+            die.textContent = diceFaces[result.outcome] || '⚀';
 
-        pulseBalance();
-        await loadDashboard();
+            if (result.win) {
+                resultEl.textContent = `🎉 Résultat: ${result.outcome} ! Gagné +${formatNumber(result.winAmount)} PEPE`;
+                resultEl.style.color = 'var(--green)';
+                telegramHapticSuccess();
+            } else {
+                resultEl.textContent = `Résultat: ${result.outcome}... Perdu`;
+                resultEl.style.color = 'var(--danger)';
+                telegramHapticError();
+            }
+            pulseBalance();
+            loadDashboard();
+            setButtonLoading(btn, false);
+        }, 1000);
     } catch (err) {
+        die.classList.remove('rolling');
         resultEl.textContent = err.message || 'Erreur lors du jeu';
         resultEl.style.color = 'var(--danger)';
-    } finally {
         setButtonLoading(btn, false);
     }
+}
+
+// ===== GAMES: LUCKY NUMBER =====
+async function playLuckyNumber(btn) {
+    const choice = Number(document.getElementById('choiceLucky').value);
+    const betAmount = Number(document.getElementById('betLucky').value);
+    const resultEl = document.getElementById('resultLucky');
+    const display = document.getElementById('luckyDisplay');
+
+    if (!choice) {
+        resultEl.textContent = 'Choisissez un nombre entre 1 et 10';
+        return;
+    }
+    if (!betAmount || betAmount < 100) {
+        resultEl.textContent = 'Mise minimum : 100 PEPE';
+        return;
+    }
+
+    setButtonLoading(btn, true, 'En cours...');
+    resultEl.textContent = '';
+    display.classList.add('spinning');
+
+    try {
+        const result = await api.playGame('lucky_number', betAmount, choice);
+
+        setTimeout(() => {
+            display.classList.remove('spinning');
+            display.textContent = result.outcome;
+
+            if (result.win) {
+                resultEl.textContent = `🎉 Numéro ${result.outcome} ! Gagné +${formatNumber(result.winAmount)} PEPE`;
+                resultEl.style.color = 'var(--green)';
+                telegramHapticSuccess();
+            } else {
+                resultEl.textContent = `Numéro tiré: ${result.outcome}... Perdu`;
+                resultEl.style.color = 'var(--danger)';
+                telegramHapticError();
+            }
+            pulseBalance();
+            loadDashboard();
+            setButtonLoading(btn, false);
+        }, 1000);
+    } catch (err) {
+        display.classList.remove('spinning');
+        resultEl.textContent = err.message || 'Erreur lors du jeu';
+        resultEl.style.color = 'var(--danger)';
+        setButtonLoading(btn, false);
+    }
+}
+
+// ===== GAMES: SLOTS =====
+async function playSlots(btn) {
+    const betAmount = Number(document.getElementById('betSlots').value);
+    const resultEl = document.getElementById('resultSlots');
+    const reels = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
+    const symbols = ['🐸', '⭐'];
+
+    if (!betAmount || betAmount < 100) {
+        resultEl.textContent = 'Mise minimum : 100 PEPE';
+        return;
+    }
+
+    setButtonLoading(btn, true, 'En cours...');
+    resultEl.textContent = '';
+    reels.forEach((r) => r.classList.add('spinning'));
+
+    try {
+        const result = await api.playGame('slots', betAmount);
+        const finalSymbols = parseSlotOutcome(result.outcome);
+
+        setTimeout(() => {
+            reels.forEach((reel, i) => {
+                reel.classList.remove('spinning');
+                reel.querySelector('.slot-reel__inner').textContent = finalSymbols[i];
+            });
+
+            if (result.win) {
+                resultEl.textContent = `🎉 ${result.outcome} ! Gagné +${formatNumber(result.winAmount)} PEPE`;
+                resultEl.style.color = 'var(--green)';
+                telegramHapticSuccess();
+            } else {
+                resultEl.textContent = `${result.outcome}... Perdu`;
+                resultEl.style.color = 'var(--danger)';
+                telegramHapticError();
+            }
+            pulseBalance();
+            loadDashboard();
+            setButtonLoading(btn, false);
+        }, 1200);
+    } catch (err) {
+        reels.forEach((r) => r.classList.remove('spinning'));
+        resultEl.textContent = err.message || 'Erreur lors du jeu';
+        resultEl.style.color = 'var(--danger)';
+        setButtonLoading(btn, false);
+    }
+}
+
+function parseSlotOutcome(outcome) {
+    // outcome attendu: '🐸🐸🐸', '🐸🐸⭐', '🐸⭐⭐', ou '⭐⭐⭐'
+    if (outcome && outcome.length >= 3) {
+        return [...outcome];
+    }
+    return ['🐸', '⭐', '🐸'];
 }
 
 function setupGameButtons() {
     document.querySelectorAll('.play-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
             const gameType = btn.dataset.game;
-            const cardEl = btn.closest('.game-card');
-            handlePlayGame(gameType, cardEl, btn);
+            switch (gameType) {
+                case 'coinflip': playCoinflip(btn); break;
+                case 'dice': playDice(btn); break;
+                case 'lucky_number': playLuckyNumber(btn); break;
+                case 'slots': playSlots(btn); break;
+            }
         });
     });
 }
@@ -292,7 +453,7 @@ function onScreenOpen(screenName) {
 
 // ===== INITIALISATION =====
 function setupNavigation() {
-    document.querySelectorAll('[data-nav]').forEach((el) => {
+    document.querySelectorAll('.nav-btn[data-nav], .action-btn[data-nav], .back-btn[data-nav]').forEach((el) => {
         el.addEventListener('click', () => navigateTo(el.dataset.nav));
     });
 }
@@ -307,18 +468,8 @@ function setupActionButtons() {
 document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
     setupActionButtons();
+    setupGameMenuNavigation();
     setupCoinflipChoices();
     setupGameButtons();
     loadDashboard();
-
-// ===== DEBUG TEMPORAIRE - À RETIRER APRÈS TEST =====
-setTimeout(() => {
-    const debugInfo = {
-        start_param: window.Telegram?.WebApp?.initDataUnsafe?.start_param || 'UNDEFINED',
-        initData_raw: window.Telegram?.WebApp?.initData || 'EMPTY'
-    };
-    showToast(`start_param: ${debugInfo.start_param}`, false);
-    console.log('DEBUG initData complet:', debugInfo.initData_raw);
-}, 1500);
-    
 });

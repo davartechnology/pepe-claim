@@ -2,6 +2,10 @@ const crypto = require('crypto');
 const env = require('../config/env');
 const supabase = require('../config/supabase');
 
+/**
+ * Vérifie la signature des initData envoyées par Telegram Web App
+ * Doc: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
+ */
 function verifyTelegramInitData(initData) {
     const urlParams = new URLSearchParams(initData);
     const hash = urlParams.get('hash');
@@ -47,50 +51,31 @@ async function telegramAuthMiddleware(req, res, next) {
 
         const tgUser = JSON.parse(userJson);
 
-        // ===== DEBUG =====
-        console.log('========================================');
-        console.log('🔍 [AUTH] telegram_id reçu:', tgUser.id, typeof tgUser.id);
-        console.log('🔍 [AUTH] start_param brut:', urlParams.get('start_param'));
-        console.log('🔍 [AUTH] initData complet:', initData);
-        console.log('========================================');
+        console.log('🔍 DEBUG start_param reçu:', urlParams.get('start_param'));
+console.log('🔍 DEBUG tgUser:', tgUser.id, tgUser.username);
 
+        // Récupère ou crée l'utilisateur en base
         let { data: user, error } = await supabase
             .from('users')
             .select('*')
             .eq('telegram_id', tgUser.id)
             .single();
 
-        if (error) {
-            console.log('🔍 [AUTH] Résultat recherche user existant -> error:', error.code, error.message);
-        } else {
-            console.log('🔍 [AUTH] Utilisateur déjà existant trouvé:', user?.id);
+        if (error && error.code === 'PGRST116') {
+            // PGRST116 = aucune ligne trouvée -> on crée l'utilisateur
         }
 
         if (!user) {
-            const referrerStartParam = urlParams.get('start_param');
+            const referrerStartParam = urlParams.get('start_param'); // ID du parrain si présent
             let referrerId = null;
 
-            console.log('🔍 [AUTH] Nouveau compte. referrerStartParam =', referrerStartParam);
-
             if (referrerStartParam) {
-                const { data: referrer, error: referrerError } = await supabase
+                const { data: referrer } = await supabase
                     .from('users')
                     .select('id')
                     .eq('id', referrerStartParam)
                     .single();
-
-                if (referrerError) {
-                    console.log('❌ [AUTH] Erreur recherche du parrain:', referrerError.code, referrerError.message);
-                }
-
-                if (referrer) {
-                    referrerId = referrer.id;
-                    console.log('✅ [AUTH] Parrain trouvé:', referrerId);
-                } else {
-                    console.log('❌ [AUTH] Aucun parrain trouvé avec id =', referrerStartParam);
-                }
-            } else {
-                console.log('⚠️ [AUTH] Pas de start_param dans initData -> pas de parrain');
+                if (referrer) referrerId = referrer.id;
             }
 
             const { data: newUser, error: insertError } = await supabase
@@ -104,12 +89,11 @@ async function telegramAuthMiddleware(req, res, next) {
                 .single();
 
             if (insertError) {
-                console.error('❌ [AUTH] Erreur création utilisateur:', insertError);
+                console.error('Erreur création utilisateur:', insertError);
                 return res.status(500).json({ error: 'Erreur création utilisateur' });
             }
 
-            console.log('✅ [AUTH] Nouvel utilisateur créé:', newUser.id, '| referrer_id:', newUser.referrer_id);
-
+            // Incrémente les compteurs de niveaux chez les parrains
             if (referrerId) {
                 await updateReferrerCounts(referrerId);
             }
@@ -120,7 +104,7 @@ async function telegramAuthMiddleware(req, res, next) {
         req.user = user;
         next();
     } catch (err) {
-        console.error('❌ [AUTH] Erreur telegramAuthMiddleware:', err);
+        console.error('Erreur telegramAuthMiddleware:', err);
         return res.status(500).json({ error: 'Erreur authentification' });
     }
 }
@@ -132,17 +116,12 @@ async function updateReferrerCounts(referrerId) {
         .eq('id', referrerId)
         .single();
 
-    if (!referrer) {
-        console.log('❌ [REFERRAL] updateReferrerCounts: parrain introuvable pour id', referrerId);
-        return;
-    }
+    if (!referrer) return;
 
     await supabase
         .from('users')
         .update({ level1_count: referrer.level1_count + 1 })
         .eq('id', referrer.id);
-
-    console.log('✅ [REFERRAL] level1_count incrémenté pour', referrer.id);
 
     if (referrer.referrer_id) {
         const { data: level2Referrer } = await supabase

@@ -164,48 +164,113 @@
       </div>
     </section>
 
-    <!-- GAMES -->
+    <!-- GAMES MENU -->
     <section class="screen" id="screen-games">
       <h2 class="screen-title">🏆 Games</h2>
+      <div class="game-menu">
+        <button class="game-menu-card" data-game-nav="coinflip">
+          <span class="game-menu-card__icon">🪙</span>
+          <span class="game-menu-card__name">Coin Flip</span>
+          <span class="game-menu-card__mult">x2</span>
+        </button>
+        <button class="game-menu-card" data-game-nav="dice">
+          <span class="game-menu-card__icon">🎲</span>
+          <span class="game-menu-card__name">Dice</span>
+          <span class="game-menu-card__mult">x2</span>
+        </button>
+        <button class="game-menu-card" data-game-nav="lucky_number">
+          <span class="game-menu-card__icon">🎯</span>
+          <span class="game-menu-card__name">Lucky Number</span>
+          <span class="game-menu-card__mult">x5</span>
+        </button>
+        <button class="game-menu-card" data-game-nav="slots">
+          <span class="game-menu-card__icon">🎰</span>
+          <span class="game-menu-card__name">PEPE Slots</span>
+          <span class="game-menu-card__mult">x10</span>
+        </button>
+      </div>
+    </section>
 
-      <div class="game-card" id="gameCoinflip">
-        <h3>🪙 Coin Flip <span class="game-card__multiplier">x2</span></h3>
-        <div class="game-choice-row">
-          <button class="choice-btn" data-choice="heads">Heads</button>
-          <button class="choice-btn" data-choice="tails">Tails</button>
+    <!-- GAME: COIN FLIP -->
+    <section class="screen" id="screen-game-coinflip">
+      <button class="back-btn" data-nav="games">← Retour</button>
+      <h2 class="screen-title">🪙 Coin Flip <span class="game-card__multiplier">x2</span></h2>
+
+      <div class="game-stage">
+        <div class="coin" id="coinflipCoin">
+          <div class="coin__face coin__face--heads">🐸</div>
+          <div class="coin__face coin__face--tails">⭐</div>
         </div>
-        <input type="number" class="bet-input" placeholder="Mise (min 100)" min="100" />
+      </div>
+
+      <div class="card">
+        <div class="game-choice-row">
+          <button class="choice-btn" data-choice="heads">Heads 🐸</button>
+          <button class="choice-btn" data-choice="tails">Tails ⭐</button>
+        </div>
+        <input type="number" class="bet-input" id="betCoinflip" placeholder="Mise (min 100)" min="100" />
         <button class="btn btn--primary btn--full play-btn" data-game="coinflip">Jouer</button>
-        <p class="game-result"></p>
+        <p class="game-result" id="resultCoinflip"></p>
+      </div>
+    </section>
+
+    <!-- GAME: DICE -->
+    <section class="screen" id="screen-game-dice">
+      <button class="back-btn" data-nav="games">← Retour</button>
+      <h2 class="screen-title">🎲 Dice <span class="game-card__multiplier">x2</span></h2>
+
+      <div class="game-stage">
+        <div class="die" id="diceCube">⚀</div>
       </div>
 
-      <div class="game-card" id="gameDice">
-        <h3>🎲 Dice <span class="game-card__multiplier">x2</span></h3>
+      <div class="card">
         <p class="hint">Gagne sur 4, 5 ou 6</p>
-        <input type="number" class="bet-input" placeholder="Mise (min 100)" min="100" />
+        <input type="number" class="bet-input" id="betDice" placeholder="Mise (min 100)" min="100" />
         <button class="btn btn--primary btn--full play-btn" data-game="dice">Jouer</button>
-        <p class="game-result"></p>
+        <p class="game-result" id="resultDice"></p>
+      </div>
+    </section>
+
+    <!-- GAME: LUCKY NUMBER -->
+    <section class="screen" id="screen-game-lucky">
+      <button class="back-btn" data-nav="games">← Retour</button>
+      <h2 class="screen-title">🎯 Lucky Number <span class="game-card__multiplier">x5</span></h2>
+
+      <div class="game-stage">
+        <div class="lucky-number-display" id="luckyDisplay">?</div>
       </div>
 
-      <div class="game-card" id="gameLucky">
-        <h3>🎯 Lucky Number <span class="game-card__multiplier">x5</span></h3>
-        <select class="choice-select">
+      <div class="card">
+        <select class="choice-select" id="choiceLucky">
           <option value="">Choisissez 1 à 10</option>
           <option value="1">1</option><option value="2">2</option><option value="3">3</option>
           <option value="4">4</option><option value="5">5</option><option value="6">6</option>
           <option value="7">7</option><option value="8">8</option><option value="9">9</option>
           <option value="10">10</option>
         </select>
-        <input type="number" class="bet-input" placeholder="Mise (min 100)" min="100" />
+        <input type="number" class="bet-input" id="betLucky" placeholder="Mise (min 100)" min="100" />
         <button class="btn btn--primary btn--full play-btn" data-game="lucky_number">Jouer</button>
-        <p class="game-result"></p>
+        <p class="game-result" id="resultLucky"></p>
+      </div>
+    </section>
+
+    <!-- GAME: SLOTS -->
+    <section class="screen" id="screen-game-slots">
+      <button class="back-btn" data-nav="games">← Retour</button>
+      <h2 class="screen-title">🎰 PEPE Slots <span class="game-card__multiplier">x10</span></h2>
+
+      <div class="game-stage">
+        <div class="slots-machine">
+          <div class="slot-reel" id="reel1"><div class="slot-reel__inner">🐸</div></div>
+          <div class="slot-reel" id="reel2"><div class="slot-reel__inner">🐸</div></div>
+          <div class="slot-reel" id="reel3"><div class="slot-reel__inner">🐸</div></div>
+        </div>
       </div>
 
-      <div class="game-card" id="gameSlots">
-        <h3>🎰 PEPE Slots <span class="game-card__multiplier">x10</span></h3>
-        <input type="number" class="bet-input" placeholder="Mise (min 100)" min="100" />
+      <div class="card">
+        <input type="number" class="bet-input" id="betSlots" placeholder="Mise (min 100)" min="100" />
         <button class="btn btn--primary btn--full play-btn" data-game="slots">Jouer</button>
-        <p class="game-result"></p>
+        <p class="game-result" id="resultSlots"></p>
       </div>
     </section>
 
@@ -237,7 +302,5 @@
 <script src="js/telegram.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
 </body>
 </html>

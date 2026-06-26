@@ -126,6 +126,20 @@ body {
   font-family: var(--font-display);
   font-size: 19px;
   margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  padding: 0 0 12px;
+  display: block;
 }
 
 /* ===== ACTION GRID (HOME) ===== */
@@ -326,29 +340,60 @@ body {
 
 #btnWithdraw { margin-top: 16px; }
 
-/* ===== GAMES ===== */
-.game-card {
+/* ===== GAMES MENU ===== */
+.game-menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.game-menu-card {
   background: var(--surface);
+  border: 1px solid rgba(91,194,54,0.12);
   border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 14px;
-}
-
-.game-card h3 {
-  font-family: var(--font-display);
-  font-size: 15px;
+  padding: 20px 10px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  margin: 0 0 10px;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text);
 }
 
+.game-menu-card__icon { font-size: 32px; }
+
+.game-menu-card__name {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.game-menu-card__mult {
+  background: rgba(255, 210, 63, 0.15);
+  color: var(--gold);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+/* ===== GAME SCREENS GENERAL ===== */
 .game-card__multiplier {
   background: rgba(255, 210, 63, 0.15);
   color: var(--gold);
   font-size: 11px;
   padding: 3px 8px;
   border-radius: 8px;
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.game-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 160px;
+  margin-bottom: 18px;
+  perspective: 800px;
 }
 
 .game-choice-row {
@@ -391,6 +436,142 @@ body {
   margin-top: 10px;
   min-height: 16px;
   color: var(--text-muted);
+}
+
+/* ===== COIN FLIP ANIMATION ===== */
+.coin {
+  width: 110px;
+  height: 110px;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.coin__face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  backface-visibility: hidden;
+  background: linear-gradient(145deg, var(--gold), #C99A1E);
+  border: 3px solid #8A6A12;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+
+.coin__face--tails {
+  transform: rotateY(180deg);
+}
+
+.coin.flipping {
+  animation: coinFlip 1.4s cubic-bezier(0.4, 0.1, 0.3, 1);
+}
+
+.coin.show-heads {
+  transform: rotateY(0deg);
+}
+
+.coin.show-tails {
+  transform: rotateY(180deg);
+}
+
+@keyframes coinFlip {
+  0% { transform: rotateY(0deg) translateY(0); }
+  20% { transform: rotateY(360deg) translateY(-30px); }
+  40% { transform: rotateY(720deg) translateY(0); }
+  60% { transform: rotateY(1080deg) translateY(-15px); }
+  80% { transform: rotateY(1440deg) translateY(0); }
+  100% { transform: rotateY(1800deg); }
+}
+
+/* ===== DICE ANIMATION ===== */
+.die {
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(145deg, #ffffff, #d8d8d8);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+  color: #0E1A12;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+
+.die.rolling {
+  animation: diceRoll 1s ease-in-out;
+}
+
+@keyframes diceRoll {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(120deg) scale(1.1); }
+  50% { transform: rotate(240deg) scale(0.95); }
+  75% { transform: rotate(360deg) scale(1.1); }
+  100% { transform: rotate(480deg) scale(1); }
+}
+
+/* ===== LUCKY NUMBER ANIMATION ===== */
+.lucky-number-display {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--green);
+  box-shadow: 0 0 24px rgba(91,194,54,0.25);
+}
+
+.lucky-number-display.spinning {
+  animation: luckySpin 1s ease-in-out;
+}
+
+@keyframes luckySpin {
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.15) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+/* ===== SLOTS ANIMATION ===== */
+.slots-machine {
+  display: flex;
+  gap: 10px;
+  background: var(--surface-2);
+  padding: 16px;
+  border-radius: 16px;
+  border: 2px solid rgba(255,210,63,0.2);
+}
+
+.slot-reel {
+  width: 60px;
+  height: 70px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.slot-reel__inner {
+  transition: none;
+}
+
+.slot-reel.spinning .slot-reel__inner {
+  animation: slotSpin 0.15s linear infinite;
+}
+
+@keyframes slotSpin {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-60px); }
 }
 
 /* ===== HISTORY ===== */
