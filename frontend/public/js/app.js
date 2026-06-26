@@ -46,13 +46,11 @@ async function loadClaimStatus() {
     }
 }
 
-function watchAd(networkKey) {
-    return new Promise((resolve) => {
-        showToast(`Chargement pub via ${networkKey}...`);
-        setTimeout(() => resolve(true), 2000);
-    });
-}
-
+/**
+ * Tente chaque régie publicitaire disponible dans l'ordre de priorité
+ * jusqu'à ce qu'une fonctionne. La fonction watchAd() réelle
+ * (par régie) est définie dans js/ads.js.
+ */
 async function handleWatchAdAndClaim() {
     const btn = document.getElementById('btnWatchAd');
     setButtonLoading(btn, true, 'Pub en cours...');
@@ -66,10 +64,28 @@ async function handleWatchAdAndClaim() {
             return;
         }
 
-        const network = networks[0];
-        await watchAd(network.key);
+        let adWatched = false;
+        let networkUsed = null;
+        let lastError = null;
 
-        const result = await api.claim(network.key);
+        for (const network of networks) {
+            try {
+                await watchAd(network.key);
+                adWatched = true;
+                networkUsed = network.key;
+                break;
+            } catch (err) {
+                console.warn(`Régie ${network.key} indisponible:`, err.message);
+                lastError = err;
+            }
+        }
+
+        if (!adWatched) {
+            showToast(lastError?.message || 'Aucune publicité disponible pour le moment', true);
+            return;
+        }
+
+        const result = await api.claim(networkUsed);
         showToast(`+${result.reward} PEPE crédités !`);
         telegramHapticSuccess();
         pulseBalance();
@@ -366,7 +382,6 @@ async function playSlots(btn) {
     const betAmount = Number(document.getElementById('betSlots').value);
     const resultEl = document.getElementById('resultSlots');
     const reels = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
-    const symbols = ['🐸', '⭐'];
 
     if (!betAmount || betAmount < 100) {
         resultEl.textContent = 'Mise minimum : 100 PEPE';
@@ -409,7 +424,6 @@ async function playSlots(btn) {
 }
 
 function parseSlotOutcome(outcome) {
-    // outcome attendu: '🐸🐸🐸', '🐸🐸⭐', '🐸⭐⭐', ou '⭐⭐⭐'
     if (outcome && outcome.length >= 3) {
         return [...outcome];
     }

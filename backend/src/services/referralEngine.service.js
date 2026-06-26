@@ -4,7 +4,7 @@ const constants = require('../utils/constants');
 /**
  * Distribue les commissions de parrainage suite à un CLAIM.
  * @param {string} userId - L'utilisateur qui vient de faire le claim
- * @param {number} claimReward - Le montant du claim (ex: 100 PEPE)
+ * @param {number} claimReward - Le montant du claim (ex: 70 PEPE)
  */
 async function distributeReferralEarnings(userId, claimReward) {
     const { data: user } = await supabase

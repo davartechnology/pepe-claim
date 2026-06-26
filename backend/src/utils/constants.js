@@ -1,6 +1,6 @@
 module.exports = {
     // ===== CLAIM =====
-    CLAIM_REWARD: 100,              // PEPE par claim
+    CLAIM_REWARD: 70,              // PEPE par claim
     CLAIM_RECHARGE_AMOUNT: 4,       // Claims rechargés à chaque cycle
     CLAIM_RECHARGE_INTERVAL_MIN: 15,// Toutes les 15 minutes
     MAX_CLAIMS_PER_DAY: 52,

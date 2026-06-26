@@ -1,16 +1,5 @@
 const constants = require('../utils/constants');
 
-/**
- * Simule/vérifie la disponibilité d'une régie publicitaire.
- * NOTE: Chaque régie (TADS, Adexium, Adsxuit, Adsmone) a sa propre logique
- * d'intégration SDK côté FRONTEND. Ce service côté backend sert surtout à :
- * 1. Déterminer quelle régie proposer en priorité au frontend
- * 2. Valider qu'un callback de complétion de pub provient bien d'une régie valide
- *
- * Le SDK de chaque régie sera intégré côté frontend (js/ads.js) car c'est
- * généralement là que se fait l'affichage des pubs vidéo/interstitielles.
- */
-
 const AD_NETWORK_CONFIG = {
     tads: {
         name: 'TADS',
@@ -20,7 +9,7 @@ const AD_NETWORK_CONFIG = {
     adexium: {
         name: 'Adexium',
         domain: 'adexium.io',
-        enabled: true
+        enabled: false // en attente : pas de callback de complétion documenté
     },
     adsxuit: {
         name: 'Adsxuit',
@@ -30,7 +19,7 @@ const AD_NETWORK_CONFIG = {
     adsmone: {
         name: 'Adsmone',
         domain: 'adsmone.com',
-        enabled: true
+        enabled: false // écarté définitivement par décision projet
     }
 };
 
