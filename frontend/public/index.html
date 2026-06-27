@@ -20,6 +20,7 @@
         adexiumWidget.autoMode();
     });
 </script>
+<script src="https://w.tads.me/widget.js"></script>
 </head>
 <body>
 
@@ -50,6 +51,13 @@
       </div>
     </div>
   </header>
+
+   <!-- ===== BANNIÈRE PUBLICITAIRE TADS (TGB) — visible sur tous les écrans ===== -->
+  <div class="ad-banner-wrapper">
+    <div id="tads-container-10248"></div>
+  </div>
+
+  <!-- ===== SCREENS ===== -->
 
   <!-- ===== SCREENS ===== -->
   <main id="screens">
@@ -337,6 +345,31 @@
 
 <script src="https://w.tads.me/widget.js"></script>
 <script src="https://adsxuit.com/sdk.js" app_id="WIXDHHOGCDOBEXOE"></script>
+
+<script>
+    const adsNotFoundCallbackTGB = () => {
+        console.log('Aucune publicité TGB disponible');
+    };
+
+    const onClickRewardCallbackTGB = (adId) => {
+        console.log('Pub TGB cliquée:', adId);
+    };
+
+    const tgbController = window.tads.init({
+        widgetId: '10248',
+        type: 'static',
+        debug: false,
+        onClickReward: onClickRewardCallbackTGB,
+        onAdsNotFound: adsNotFoundCallbackTGB
+    });
+
+    tgbController.loadAd()
+        .then(() => tgbController.showAd())
+        .catch((err) => {
+            console.log(err);
+            adsNotFoundCallbackTGB();
+        });
+</script>
 
 </body>
 </html>

@@ -711,3 +711,18 @@ body {
   cursor: not-allowed;
   background: var(--surface);
 }
+
+/* ===== BANNIÈRE PUBLICITAIRE PERSISTANTE ===== */
+.ad-banner-wrapper {
+  padding: 10px 14px 0;
+  min-height: 50px;
+  display: flex;
+  justify-content: center;
+}
+
+#tads-container-10248 {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 12px;
+  overflow: hidden;
+}
