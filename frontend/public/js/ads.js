@@ -39,15 +39,24 @@ function showTadsAd() {
             onAdsNotFound: onAdsNotFound
         });
 
-        adController
-            .then(() => adController.showAd())
-            .catch((err) => {
+        // Le SDK peut renvoyer soit une Promise, soit directement le contrôleur
+        if (adController && typeof adController.then === 'function') {
+            adController
+                .then((ctrl) => (ctrl || adController).showAd())
+                .catch((err) => {
+                    console.error('Erreur TADS:', err);
+                    reject(new Error('Erreur lors du chargement de la publicité TADS'));
+                });
+        } else if (adController && typeof adController.showAd === 'function') {
+            adController.showAd().catch((err) => {
                 console.error('Erreur TADS:', err);
                 reject(new Error('Erreur lors du chargement de la publicité TADS'));
             });
+        } else {
+            reject(new Error('Réponse TADS SDK inattendue'));
+        }
     });
 }
-
 /**
  * Adsxuit — pas de callback de complétion exposé, on attend la durée
  * documentée du countdown avant de considérer la pub comme vue.
