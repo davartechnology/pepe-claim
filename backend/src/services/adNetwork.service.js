@@ -6,15 +6,25 @@ const AD_NETWORK_CONFIG = {
         domain: 'tads.me',
         enabled: true
     },
-    adexium: {
-        name: 'Adexium',
-        domain: 'adexium.io',
-        enabled: false // en attente : pas de callback de complétion documenté
-    },
     adsxuit: {
         name: 'Adsxuit',
         domain: 'adsxuit.com',
         enabled: true
+    },
+    adsgram: {
+        name: 'Adsgram',
+        domain: 'adsgram.ai',
+        enabled: true
+    },
+    monetag: {
+        name: 'Monetag',
+        domain: 'monetag.com',
+        enabled: false // en attente de compte/Zone ID
+    },
+    adexium: {
+        name: 'Adexium',
+        domain: 'adexium.io',
+        enabled: false // utilisé en revenu passif séparé, pas dans le flux Claim
     },
     adsmone: {
         name: 'Adsmone',
@@ -23,20 +33,12 @@ const AD_NETWORK_CONFIG = {
     }
 };
 
-/**
- * Retourne la liste des régies dans l'ordre de priorité,
- * en ne gardant que celles activées.
- */
 function getAvailableNetworks() {
     return constants.AD_NETWORKS_PRIORITY
         .filter((key) => AD_NETWORK_CONFIG[key]?.enabled)
         .map((key) => ({ key, ...AD_NETWORK_CONFIG[key] }));
 }
 
-/**
- * Valide qu'une régie reçue dans une requête de claim est bien
- * une régie connue et activée du système (sécurité anti-triche).
- */
 function isValidNetwork(networkKey) {
     return Boolean(AD_NETWORK_CONFIG[networkKey]?.enabled);
 }

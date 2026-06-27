@@ -672,3 +672,42 @@ body {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ===== CLAIM NETWORK BUTTONS ===== */
+.claim-network-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.claim-network-btn {
+  background: linear-gradient(135deg, var(--green-dark), var(--green));
+  border: none;
+  border-radius: 12px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.claim-network-btn__name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: #06150A;
+}
+
+.claim-network-btn__reward {
+  font-size: 11px;
+  color: #06150A;
+  opacity: 0.85;
+}
+
+.claim-network-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--surface);
+}

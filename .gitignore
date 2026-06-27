@@ -1,3 +1,25 @@
-﻿node_modules/
+﻿# Dependencies
+node_modules/
+python-api/__pycache__/
+python-api/venv/
+
+# Env files - JAMAIS sur GitHub
 .env
+.env.local
+.env*.local
+python-api/.env
+
+# Next.js
+.next/
+out/
+
+# Misc
 .DS_Store
+*.pem
+
+# Logs
+npm-debug.log*
+
+# Python
+*.pyc
+__pycache__/

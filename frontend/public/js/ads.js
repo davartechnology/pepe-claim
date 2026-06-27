@@ -1,15 +1,25 @@
 /**
  * Intégration des régies publicitaires (rewarded ads)
- * Actif : TADS (callback fiable), Adsxuit (fallback, sans callback confirmé)
- * En attente de documentation complète : Adexium
+ * Actifs : TADS, Adsxuit, Adsgram
+ * En attente : Monetag (compte à créer)
+ * Hors flux Claim (revenu passif séparé) : Adexium
  */
 
 const TADS_WIDGET_ID = '10246';
+const ADSGRAM_BLOCK_ID = '36354';
 const ADSXUIT_AD_DURATION_MS = 16000; // 15s de countdown officiel + 1s de marge
 
+let adsgramController = null;
+
+function getAdsgramController() {
+    if (!adsgramController && window.Adsgram) {
+        adsgramController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+    }
+    return adsgramController;
+}
+
 /**
- * TADS — utilise le vrai callback onShowReward pour confirmer
- * que l'utilisateur a bien reçu la récompense après la pub fullscreen.
+ * TADS — callback fiable onShowReward
  */
 function showTadsAd() {
     return new Promise((resolve, reject) => {
@@ -18,13 +28,8 @@ function showTadsAd() {
             return;
         }
 
-        const onShowRewardCallback = () => {
-            resolve(true);
-        };
-
-        const onAdsNotFound = () => {
-            reject(new Error('Aucune publicité TADS disponible'));
-        };
+        const onShowRewardCallback = () => resolve(true);
+        const onAdsNotFound = () => reject(new Error('Aucune publicité TADS disponible'));
 
         const adController = window.tads.init({
             widgetId: TADS_WIDGET_ID,
@@ -44,36 +49,63 @@ function showTadsAd() {
 }
 
 /**
- * Adsxuit — pas de callback de complétion exposé par leur SDK.
- * On déclenche l'overlay (countdown 15s géré par eux) et on attend
- * la durée documentée avant de considérer la pub comme vue.
+ * Adsxuit — pas de callback de complétion exposé, on attend la durée
+ * documentée du countdown avant de considérer la pub comme vue.
  */
 function showAdsxuitAd() {
     return new Promise((resolve) => {
         if (typeof window.__axReset === 'function') {
             window.__axReset();
         }
-
         document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-
         setTimeout(() => resolve(true), ADSXUIT_AD_DURATION_MS);
     });
 }
 
 /**
- * Table de correspondance régie -> fonction d'affichage
+ * Adsgram — callback fiable via Promise .then()/.catch()
  */
+function showAdsgramAd() {
+    return new Promise((resolve, reject) => {
+        const controller = getAdsgramController();
+
+        if (!controller) {
+            reject(new Error('Adsgram SDK non chargé'));
+            return;
+        }
+
+        controller.show()
+            .then((result) => {
+                if (result.done) {
+                    resolve(true);
+                } else {
+                    reject(new Error('Publicité Adsgram non terminée'));
+                }
+            })
+            .catch((result) => {
+                console.error('Erreur Adsgram:', result);
+                reject(new Error('Aucune publicité Adsgram disponible'));
+            });
+    });
+}
+
+/**
+ * Monetag — en attente de compte/Zone ID, non fonctionnel pour l'instant
+ */
+function showMonetagAd() {
+    return Promise.reject(new Error('Monetag pas encore configuré'));
+}
+
 const AD_NETWORK_HANDLERS = {
     tads: showTadsAd,
-    adsxuit: showAdsxuitAd
-    // adexium: à ajouter dès que leur callback de complétion est documenté
+    adsxuit: showAdsxuitAd,
+    adsgram: showAdsgramAd,
+    monetag: showMonetagAd
 };
 
 /**
- * Point d'entrée unique appelé par app.js pour afficher une pub
- * selon la régie choisie par le backend (ordre de priorité).
- * Si la régie prioritaire échoue (ex: pas de pub dispo), on tente
- * automatiquement la suivante.
+ * Point d'entrée appelé par app.js pour afficher une pub
+ * pour une régie précise (l'utilisateur choisit le bouton).
  */
 async function watchAd(networkKey) {
     const handler = AD_NETWORK_HANDLERS[networkKey];

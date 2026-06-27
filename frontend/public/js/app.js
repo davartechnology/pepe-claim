@@ -28,76 +28,59 @@ async function loadClaimStatus() {
         document.getElementById('claimStatusRecharge').textContent =
             status.nextRechargeMinutes > 0 ? `${status.nextRechargeMinutes} min` : 'Disponible';
 
-        const btn = document.getElementById('btnWatchAd');
+        const networkButtons = document.querySelectorAll('.claim-network-btn:not([data-network="monetag"])');
         const hint = document.getElementById('claimHint');
 
+        let disableAll = false;
+        let message = '';
+
         if (status.claimsRemaining <= 0) {
-            btn.disabled = true;
-            hint.textContent = 'Limite quotidienne atteinte (52/52). Revenez demain !';
+            disableAll = true;
+            message = 'Limite quotidienne atteinte (52/52). Revenez demain !';
         } else if (status.claimsAvailable <= 0) {
-            btn.disabled = true;
-            hint.textContent = `Prochaine recharge dans ${status.nextRechargeMinutes} min`;
-        } else {
-            btn.disabled = false;
-            hint.textContent = '';
+            disableAll = true;
+            message = `Prochaine recharge dans ${status.nextRechargeMinutes} min`;
         }
+
+        networkButtons.forEach((btn) => { btn.disabled = disableAll; });
+        hint.textContent = message;
     } catch (err) {
         console.error('Erreur statut claim:', err);
     }
 }
 
 /**
- * Tente chaque régie publicitaire disponible dans l'ordre de priorité
- * jusqu'à ce qu'une fonctionne. La fonction watchAd() réelle
- * (par régie) est définie dans js/ads.js.
+ * Déclenche la pub d'une régie précise (bouton choisi par l'utilisateur),
+ * puis valide le claim correspondant si la pub a bien été vue.
  */
-async function handleWatchAdAndClaim() {
-    const btn = document.getElementById('btnWatchAd');
+async function handleClaimViaNetwork(networkKey, btn) {
     setButtonLoading(btn, true, 'Pub en cours...');
 
     try {
-        const status = await api.getClaimStatus();
-        const networks = status.availableNetworks;
+        await watchAd(networkKey);
 
-        if (!networks.length) {
-            showToast('Aucune publicité disponible pour le moment', true);
-            return;
-        }
-
-        let adWatched = false;
-        let networkUsed = null;
-        let lastError = null;
-
-        for (const network of networks) {
-            try {
-                await watchAd(network.key);
-                adWatched = true;
-                networkUsed = network.key;
-                break;
-            } catch (err) {
-                console.warn(`Régie ${network.key} indisponible:`, err.message);
-                lastError = err;
-            }
-        }
-
-        if (!adWatched) {
-            showToast(lastError?.message || 'Aucune publicité disponible pour le moment', true);
-            return;
-        }
-
-        const result = await api.claim(networkUsed);
+        const result = await api.claim(networkKey);
         showToast(`+${result.reward} PEPE crédités !`);
         telegramHapticSuccess();
         pulseBalance();
 
         await Promise.all([loadDashboard(), loadClaimStatus()]);
     } catch (err) {
-        console.error('Erreur claim:', err);
+        console.error(`Erreur claim via ${networkKey}:`, err);
         showToast(err.message || 'Erreur lors du claim', true);
         telegramHapticError();
     } finally {
         setButtonLoading(btn, false);
     }
+}
+
+function setupClaimNetworkButtons() {
+    document.querySelectorAll('.claim-network-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const network = btn.dataset.network;
+            handleClaimViaNetwork(network, btn);
+        });
+    });
 }
 
 // ===== ÉCRAN: DAILY BONUS =====
@@ -473,7 +456,6 @@ function setupNavigation() {
 }
 
 function setupActionButtons() {
-    document.getElementById('btnWatchAd').addEventListener('click', handleWatchAdAndClaim);
     document.getElementById('btnClaimBonus').addEventListener('click', handleClaimBonus);
     document.getElementById('btnCopyLink').addEventListener('click', handleCopyReferralLink);
     document.getElementById('btnWithdraw').addEventListener('click', handleWithdraw);
@@ -482,6 +464,7 @@ function setupActionButtons() {
 document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
     setupActionButtons();
+    setupClaimNetworkButtons();
     setupGameMenuNavigation();
     setupCoinflipChoices();
     setupGameButtons();

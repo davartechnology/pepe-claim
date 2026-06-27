@@ -8,6 +8,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
+
+<!-- Adsgram SDK -->
+<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+<!-- Adexium — revenu passif séparé, indépendant du flux Claim -->
+<script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        const adexiumWidget = new AdexiumWidget({wid: '06165898-34bf-4180-be37-4d6be8d3db89', adFormat: 'interstitial'});
+        adexiumWidget.autoMode();
+    });
+</script>
 </head>
 <body>
 
@@ -47,7 +59,7 @@
       <div class="action-grid">
         <button class="action-btn action-btn--primary" data-nav="claim">
           <span class="action-btn__icon">🎬</span>
-          <span class="action-btn__label">Claim PEPE</span>
+          <span class="action-btn__label">Claim 100 PEPE</span>
         </button>
         <button class="action-btn" data-nav="bonus">
           <span class="action-btn__icon">🎁</span>
@@ -77,7 +89,7 @@
       <h2 class="screen-title">🎬 Claim Reward</h2>
       <div class="card card--centered">
         <div class="reward-display">
-          <span class="reward-display__value">70</span>
+          <span class="reward-display__value">100</span>
           <span class="reward-display__unit">PEPE</span>
         </div>
         <div class="claim-meta">
@@ -90,7 +102,26 @@
             <strong id="claimStatusRecharge">--:--</strong>
           </div>
         </div>
-        <button class="btn btn--primary btn--full" id="btnWatchAd">Regarder une pub & Claim</button>
+
+        <div class="claim-network-grid">
+          <button class="claim-network-btn" data-network="tads">
+            <span class="claim-network-btn__name">TADS</span>
+            <span class="claim-network-btn__reward">+100 PEPE</span>
+          </button>
+          <button class="claim-network-btn" data-network="adsxuit">
+            <span class="claim-network-btn__name">Adsxuit</span>
+            <span class="claim-network-btn__reward">+100 PEPE</span>
+          </button>
+          <button class="claim-network-btn" data-network="adsgram">
+            <span class="claim-network-btn__name">Adsgram</span>
+            <span class="claim-network-btn__reward">+100 PEPE</span>
+          </button>
+          <button class="claim-network-btn" data-network="monetag" disabled>
+            <span class="claim-network-btn__name">Monetag</span>
+            <span class="claim-network-btn__reward">Bientôt</span>
+          </button>
+        </div>
+
         <p class="hint" id="claimHint"></p>
       </div>
     </section>

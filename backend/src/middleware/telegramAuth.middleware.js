@@ -51,22 +51,14 @@ async function telegramAuthMiddleware(req, res, next) {
 
         const tgUser = JSON.parse(userJson);
 
-        console.log('🔍 DEBUG start_param reçu:', urlParams.get('start_param'));
-console.log('🔍 DEBUG tgUser:', tgUser.id, tgUser.username);
-
-        // Récupère ou crée l'utilisateur en base
-        let { data: user, error } = await supabase
+        let { data: user } = await supabase
             .from('users')
             .select('*')
             .eq('telegram_id', tgUser.id)
             .single();
 
-        if (error && error.code === 'PGRST116') {
-            // PGRST116 = aucune ligne trouvée -> on crée l'utilisateur
-        }
-
         if (!user) {
-            const referrerStartParam = urlParams.get('start_param'); // ID du parrain si présent
+            const referrerStartParam = urlParams.get('start_param');
             let referrerId = null;
 
             if (referrerStartParam) {
@@ -93,7 +85,6 @@ console.log('🔍 DEBUG tgUser:', tgUser.id, tgUser.username);
                 return res.status(500).json({ error: 'Erreur création utilisateur' });
             }
 
-            // Incrémente les compteurs de niveaux chez les parrains
             if (referrerId) {
                 await updateReferrerCounts(referrerId);
             }
