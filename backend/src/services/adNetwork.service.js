@@ -19,7 +19,7 @@ const AD_NETWORK_CONFIG = {
     monetag: {
         name: 'Monetag',
         domain: 'monetag.com',
-        enabled: false // en attente de compte/Zone ID
+        enabled: true
     },
     adexium: {
         name: 'Adexium',

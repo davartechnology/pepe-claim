@@ -65,6 +65,11 @@ async function handleClaimViaNetwork(networkKey, btn) {
         pulseBalance();
 
         await Promise.all([loadDashboard(), loadClaimStatus()]);
+
+        // Réaffiche la bannière TADS si elle a été écrasée par le widget fullscreen
+        if (typeof reinitTadsBanner === 'function') {
+            reinitTadsBanner();
+        }
     } catch (err) {
         console.error(`Erreur claim via ${networkKey}:`, err);
         showToast(err.message || 'Erreur lors du claim', true);

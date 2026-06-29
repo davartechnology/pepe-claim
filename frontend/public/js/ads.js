@@ -102,8 +102,17 @@ function showAdsgramAd() {
  * Monetag — en attente de compte/Zone ID, non fonctionnel pour l'instant
  */
 function showMonetagAd() {
-    return Promise.reject(new Error('Monetag pas encore configuré'));
-}
+    return new Promise((resolve, reject) => {
+        if (typeof window.show_11217138 !== 'function') {
+            reject(new Error('Monetag SDK non chargé'));
+            return;
+        }
+
+        window.show_11217138()
+            .then(() => resolve(true))
+            .catch(() => reject(new Error('Aucune publicité Monetag disponible')));
+    });
+};
 
 const AD_NETWORK_HANDLERS = {
     tads: showTadsAd,
@@ -125,4 +134,22 @@ async function watchAd(networkKey) {
 
     showToast(`Chargement de la publicité...`);
     return handler();
+}
+
+/**
+ * Réinitialise la bannière TGB TADS (peut être écrasée après
+ * l'affichage d'un widget fullscreen du même SDK).
+ */
+function reinitTadsBanner() {
+    if (!window.tads || typeof window.tads.init !== 'function') return;
+
+    const tgbController = window.tads.init({
+        widgetId: '10248',
+        type: 'static',
+        debug: false,
+        onClickReward: () => {},
+        onAdsNotFound: () => {}
+    });
+
+    tgbController.loadAd().then(() => tgbController.showAd()).catch(() => {});
 }
