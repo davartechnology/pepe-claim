@@ -109,3 +109,4 @@ create index if not exists idx_games_user_id on games(user_id);
 -- =========================================
 -- FIN DU SCHEMA
 -- =========================================
+-- j'ai changer des trucs
