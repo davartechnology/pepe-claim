@@ -1,13 +1,13 @@
 /**
  * Intégration des régies publicitaires (rewarded ads)
- * Actifs : TADS, Adsxuit, Adsgram
- * En attente : Monetag (compte à créer)
- * Hors flux Claim (revenu passif séparé) : Adexium
+ * Actifs : TADS, Gigapub, Adsgram, Monetag
+ * Hors flux Claim (revenu passif) : bannière TADS TGB
+ * Retirés : Adsxuit (remplacé par Gigapub), Adexium (MAU insuffisant)
  */
 
 const TADS_WIDGET_ID = '10246';
+const TADS_BANNER_WIDGET_ID = '10248';
 const ADSGRAM_BLOCK_ID = '36354';
-const ADSXUIT_AD_DURATION_MS = 16000; // 15s de countdown officiel + 1s de marge
 
 let adsgramController = null;
 
@@ -39,7 +39,6 @@ function showTadsAd() {
             onAdsNotFound: onAdsNotFound
         });
 
-        // Le SDK peut renvoyer soit une Promise, soit directement le contrôleur
         if (adController && typeof adController.then === 'function') {
             adController
                 .then((ctrl) => (ctrl || adController).showAd())
@@ -57,17 +56,23 @@ function showTadsAd() {
         }
     });
 }
+
 /**
- * Adsxuit — pas de callback de complétion exposé, on attend la durée
- * documentée du countdown avant de considérer la pub comme vue.
+ * Gigapub — remplace Adsxuit, callback Promise natif
  */
-function showAdsxuitAd() {
-    return new Promise((resolve) => {
-        if (typeof window.__axReset === 'function') {
-            window.__axReset();
+function showGigapubAd() {
+    return new Promise((resolve, reject) => {
+        if (typeof window.showGiga !== 'function') {
+            reject(new Error('Gigapub SDK non chargé'));
+            return;
         }
-        document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        setTimeout(() => resolve(true), ADSXUIT_AD_DURATION_MS);
+
+        window.showGiga()
+            .then(() => resolve(true))
+            .catch((e) => {
+                console.error('Erreur Gigapub:', e);
+                reject(new Error('Aucune publicité Gigapub disponible'));
+            });
     });
 }
 
@@ -99,7 +104,7 @@ function showAdsgramAd() {
 }
 
 /**
- * Monetag — en attente de compte/Zone ID, non fonctionnel pour l'instant
+ * Monetag — SDK rewarded interstitial
  */
 function showMonetagAd() {
     return new Promise((resolve, reject) => {
@@ -112,11 +117,30 @@ function showMonetagAd() {
             .then(() => resolve(true))
             .catch(() => reject(new Error('Aucune publicité Monetag disponible')));
     });
-};
+}
+
+/**
+ * Réinitialise la bannière TGB TADS après un widget fullscreen
+ */
+function reinitTadsBanner() {
+    if (!window.tads || typeof window.tads.init !== 'function') return;
+
+    const tgbController = window.tads.init({
+        widgetId: TADS_BANNER_WIDGET_ID,
+        type: 'static',
+        debug: false,
+        onClickReward: () => {},
+        onAdsNotFound: () => {}
+    });
+
+    if (tgbController && typeof tgbController.loadAd === 'function') {
+        tgbController.loadAd().then(() => tgbController.showAd()).catch(() => {});
+    }
+}
 
 const AD_NETWORK_HANDLERS = {
     tads: showTadsAd,
-    adsxuit: showAdsxuitAd,
+    gigapub: showGigapubAd,
     adsgram: showAdsgramAd,
     monetag: showMonetagAd
 };
@@ -134,22 +158,4 @@ async function watchAd(networkKey) {
 
     showToast(`Chargement de la publicité...`);
     return handler();
-}
-
-/**
- * Réinitialise la bannière TGB TADS (peut être écrasée après
- * l'affichage d'un widget fullscreen du même SDK).
- */
-function reinitTadsBanner() {
-    if (!window.tads || typeof window.tads.init !== 'function') return;
-
-    const tgbController = window.tads.init({
-        widgetId: '10248',
-        type: 'static',
-        debug: false,
-        onClickReward: () => {},
-        onAdsNotFound: () => {}
-    });
-
-    tgbController.loadAd().then(() => tgbController.showAd()).catch(() => {});
 }

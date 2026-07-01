@@ -726,3 +726,17 @@ body {
   border-radius: 12px;
   overflow: hidden;
 }
+
+/* ===== BANNIÈRE BAS DE PAGE A-ADS ===== */
+.ad-banner-bottom {
+  position: fixed;
+  bottom: 68px; /* juste au-dessus de la bottom nav */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border-top: 1px solid rgba(91,194,54,0.1);
+  z-index: 99;
+  padding: 4px 0;
+}

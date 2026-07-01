@@ -6,9 +6,9 @@ const AD_NETWORK_CONFIG = {
         domain: 'tads.me',
         enabled: true
     },
-    adsxuit: {
-        name: 'Adsxuit',
-        domain: 'adsxuit.com',
+    gigapub: {
+        name: 'Gigapub',
+        domain: 'gigapub.tech',
         enabled: true
     },
     adsgram: {
@@ -21,15 +21,20 @@ const AD_NETWORK_CONFIG = {
         domain: 'monetag.com',
         enabled: true
     },
+    adsxuit: {
+        name: 'Adsxuit',
+        domain: 'adsxuit.com',
+        enabled: false // remplacé par Gigapub
+    },
     adexium: {
         name: 'Adexium',
         domain: 'adexium.io',
-        enabled: false // utilisé en revenu passif séparé, pas dans le flux Claim
+        enabled: false // MAU insuffisant
     },
     adsmone: {
         name: 'Adsmone',
         domain: 'adsmone.com',
-        enabled: false // écarté définitivement par décision projet
+        enabled: false // écarté définitivement
     }
 };
 

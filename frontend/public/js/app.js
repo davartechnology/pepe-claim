@@ -54,6 +54,9 @@ async function loadClaimStatus() {
  * puis valide le claim correspondant si la pub a bien été vue.
  */
 async function handleClaimViaNetwork(networkKey, btn) {
+    // Désactive TOUS les boutons pendant qu'une pub est en cours
+    const allNetworkBtns = document.querySelectorAll('.claim-network-btn');
+    allNetworkBtns.forEach((b) => b.disabled = true);
     setButtonLoading(btn, true, 'Pub en cours...');
 
     try {
@@ -66,7 +69,6 @@ async function handleClaimViaNetwork(networkKey, btn) {
 
         await Promise.all([loadDashboard(), loadClaimStatus()]);
 
-        // Réaffiche la bannière TADS si elle a été écrasée par le widget fullscreen
         if (typeof reinitTadsBanner === 'function') {
             reinitTadsBanner();
         }
@@ -74,6 +76,9 @@ async function handleClaimViaNetwork(networkKey, btn) {
         console.error(`Erreur claim via ${networkKey}:`, err);
         showToast(err.message || 'Erreur lors du claim', true);
         telegramHapticError();
+
+        // En cas d'erreur, réactive les boutons
+        await loadClaimStatus();
     } finally {
         setButtonLoading(btn, false);
     }

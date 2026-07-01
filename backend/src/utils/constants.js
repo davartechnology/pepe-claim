@@ -34,5 +34,5 @@ module.exports = {
     },
 
     // ===== RÉGIES PUB (ordre de priorité) =====
-    AD_NETWORKS_PRIORITY: ['tads', 'adsxuit', 'adsgram', 'monetag']
+    AD_NETWORKS_PRIORITY: ['tads', 'gigapub', 'adsgram', 'monetag']
 };
