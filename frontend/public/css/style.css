@@ -166,7 +166,7 @@ body {
 }
 
 .action-btn--primary {
-  grid-column: 1 / -1;
+  /*grid-column: 1 / -1;*/
   background: linear-gradient(135deg, var(--green-dark), var(--green));
   border: none;
   font-size: 15px;
