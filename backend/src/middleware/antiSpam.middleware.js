@@ -9,7 +9,10 @@ function antiSpamMiddleware(actionType) {
         const userId = req.user?.id;
         if (!userId) return next();
 
-        const key = `${userId}_${actionType}`;
+        // actionType peut être une chaîne fixe ('bonus', 'withdraw'...) ou une fonction
+        // (req) => clé, utile quand l'action dépend d'un paramètre de la requête (ex: adNetwork)
+        const resolvedActionType = typeof actionType === 'function' ? actionType(req) : actionType;
+        const key = `${userId}_${resolvedActionType}`;
         const now = Date.now();
         const lastAction = lastActionMap.get(key);
 

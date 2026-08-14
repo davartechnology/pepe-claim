@@ -6,6 +6,6 @@ const antiSpam = require('../middleware/antiSpam.middleware');
 const { getClaimStatus, claimReward } = require('../controllers/claim.controller');
 
 router.get('/status', telegramAuth, getClaimStatus);
-router.post('/', telegramAuth, antiSpam('claim'), claimReward);
+router.post('/', telegramAuth, antiSpam((req) => `claim_${req.body?.adNetwork}`), claimReward);
 
 module.exports = router;

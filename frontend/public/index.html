@@ -59,7 +59,7 @@
       <div class="action-grid">
         <button class="action-btn action-btn--primary" data-nav="claim">
           <span class="action-btn__icon">🎬</span>
-          <span class="action-btn__label">Claim 100 PEPE</span>
+          <span class="action-btn__label" id="homeClaimLabel">Claim 70 PEPE</span>
         </button>
         <button class="action-btn action-btn--primary" data-nav="bonus">
           <span class="action-btn__icon">🎁</span>
@@ -73,7 +73,7 @@
       <h2 class="screen-title">🎬 Claim Reward</h2>
       <div class="card card--centered">
         <div class="reward-display">
-          <span class="reward-display__value">100</span>
+          <span class="reward-display__value" id="claimRewardValue">70</span>
           <span class="reward-display__unit">PEPE</span>
         </div>
         <div class="claim-meta">
@@ -81,28 +81,28 @@
             <span>Claims Remaining</span>
             <strong id="claimStatusRemaining">--/52</strong>
           </div>
-          <div class="claim-meta__row">
-            <span>Next Recharge</span>
-            <strong id="claimStatusRecharge">--:--</strong>
-          </div>
         </div>
 
         <div class="claim-network-grid">
           <button class="claim-network-btn" data-network="tads">
             <span class="claim-network-btn__name">TADS</span>
-            <span class="claim-network-btn__reward">+100 PEPE</span>
+            <span class="claim-network-btn__reward">+70 PEPE</span>
+            <span class="claim-network-btn__timer" hidden></span>
           </button>
           <button class="claim-network-btn" data-network="gigapub">
             <span class="claim-network-btn__name">Gigapub</span>
-            <span class="claim-network-btn__reward">+100 PEPE</span>
+            <span class="claim-network-btn__reward">+70 PEPE</span>
+            <span class="claim-network-btn__timer" hidden></span>
           </button>
           <button class="claim-network-btn" data-network="adsgram">
             <span class="claim-network-btn__name">Adsgram</span>
-            <span class="claim-network-btn__reward">+100 PEPE</span>
+            <span class="claim-network-btn__reward">+70 PEPE</span>
+            <span class="claim-network-btn__timer" hidden></span>
           </button>
           <button class="claim-network-btn" data-network="monetag">
             <span class="claim-network-btn__name">Monetag</span>
-            <span class="claim-network-btn__reward">+100 PEPE</span>
+            <span class="claim-network-btn__reward">+70 PEPE</span>
+            <span class="claim-network-btn__timer" hidden></span>
           </button>
         </div>
 

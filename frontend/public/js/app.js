@@ -20,44 +20,150 @@ async function loadDashboard() {
 }
 
 // ===== ÉCRAN: CLAIM =====
+// Un setInterval par régie pub (tads/gigapub/adsgram/monetag) pour son cooldown de 15 min indépendant.
+const claimNetworkTimers = {};
+
+function formatCountdown(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function stopNetworkCountdown(networkKey) {
+    if (claimNetworkTimers[networkKey]) {
+        clearInterval(claimNetworkTimers[networkKey]);
+        delete claimNetworkTimers[networkKey];
+    }
+}
+
+function clearAllNetworkCountdowns() {
+    Object.keys(claimNetworkTimers).forEach(stopNetworkCountdown);
+}
+
+function setNetworkButtonAvailable(btn) {
+    const timerEl = btn.querySelector('.claim-network-btn__timer');
+    btn.disabled = false;
+    if (timerEl) {
+        timerEl.hidden = true;
+        timerEl.textContent = '';
+    }
+}
+
+function startNetworkCountdown(networkKey, secondsRemaining) {
+    stopNetworkCountdown(networkKey);
+
+    const btn = document.querySelector(`.claim-network-btn[data-network="${networkKey}"]`);
+    if (!btn) return;
+    const timerEl = btn.querySelector('.claim-network-btn__timer');
+
+    let remaining = Math.max(0, Math.ceil(secondsRemaining));
+
+    const tick = () => {
+        if (remaining <= 0) {
+            stopNetworkCountdown(networkKey);
+            setNetworkButtonAvailable(btn);
+            return;
+        }
+        btn.disabled = true;
+        if (timerEl) {
+            timerEl.hidden = false;
+            timerEl.textContent = formatCountdown(remaining);
+        }
+        remaining -= 1;
+    };
+
+    tick();
+    claimNetworkTimers[networkKey] = setInterval(tick, 1000);
+}
+
+/**
+ * Met à jour tous les affichages de la récompense de claim (home, écran claim, boutons réseau)
+ * à partir de la valeur renvoyée par le backend, pour ne jamais se désynchroniser.
+ */
+function updateClaimRewardDisplays(reward) {
+    if (reward === undefined || reward === null) return;
+
+    const homeLabel = document.getElementById('homeClaimLabel');
+    if (homeLabel) homeLabel.textContent = `Claim ${reward} PEPE`;
+
+    const rewardValue = document.getElementById('claimRewardValue');
+    if (rewardValue) rewardValue.textContent = reward;
+
+    document.querySelectorAll('.claim-network-btn__reward').forEach((el) => {
+        el.textContent = `+${reward} PEPE`;
+    });
+}
+
 async function loadClaimStatus() {
     try {
         const status = await api.getClaimStatus();
+
+        updateClaimRewardDisplays(status.reward);
         document.getElementById('claimStatusRemaining').textContent =
-            `${status.claimsAvailable > 0 ? status.claimsAvailable : 0}/${status.maxClaimsPerDay}`;
-        document.getElementById('claimStatusRecharge').textContent =
-            status.nextRechargeMinutes > 0 ? `${status.nextRechargeMinutes} min` : 'Disponible';
+            `${status.claimsRemaining}/${status.maxClaimsPerDay}`;
 
-        const networkButtons = document.querySelectorAll('.claim-network-btn:not([data-network="monetag"])');
         const hint = document.getElementById('claimHint');
-
-        let disableAll = false;
-        let message = '';
+        const networkButtons = document.querySelectorAll('.claim-network-btn');
 
         if (status.claimsRemaining <= 0) {
-            disableAll = true;
-            message = 'Limite quotidienne atteinte (52/52). Revenez demain !';
-        } else if (status.claimsAvailable <= 0) {
-            disableAll = true;
-            message = `Prochaine recharge dans ${status.nextRechargeMinutes} min`;
+            clearAllNetworkCountdowns();
+            networkButtons.forEach((btn) => {
+                btn.disabled = true;
+                const timerEl = btn.querySelector('.claim-network-btn__timer');
+                if (timerEl) {
+                    timerEl.hidden = true;
+                    timerEl.textContent = '';
+                }
+            });
+            hint.textContent = `Limite quotidienne atteinte (${status.claimsToday}/${status.maxClaimsPerDay}). Revenez demain !`;
+            return;
         }
 
-        networkButtons.forEach((btn) => { btn.disabled = disableAll; });
-        hint.textContent = message;
+        hint.textContent = '';
+
+        networkButtons.forEach((btn) => {
+            const networkKey = btn.dataset.network;
+            const networkStatus = (status.networks || []).find((n) => n.key === networkKey);
+            if (!networkStatus) return;
+
+            if (networkStatus.available) {
+                stopNetworkCountdown(networkKey);
+                setNetworkButtonAvailable(btn);
+            } else {
+                startNetworkCountdown(networkKey, networkStatus.secondsRemaining);
+            }
+        });
     } catch (err) {
         console.error('Erreur statut claim:', err);
     }
 }
 
 /**
+ * Met à jour uniquement le libellé du bouton réseau pendant le chargement de la pub,
+ * sans toucher à sa structure interne (spans nom/récompense/timer).
+ */
+function setNetworkButtonLoading(btn, isLoading, loadingText = 'Pub en cours...') {
+    const nameEl = btn.querySelector('.claim-network-btn__name');
+
+    if (isLoading) {
+        if (nameEl) {
+            btn.dataset.originalName = nameEl.textContent;
+            nameEl.textContent = loadingText;
+        }
+        btn.disabled = true;
+    } else if (nameEl && btn.dataset.originalName) {
+        nameEl.textContent = btn.dataset.originalName;
+    }
+}
+
+/**
  * Déclenche la pub d'une régie précise (bouton choisi par l'utilisateur),
  * puis valide le claim correspondant si la pub a bien été vue.
+ * Seul ce bouton est affecté : les 3 autres régies restent cliquables.
  */
 async function handleClaimViaNetwork(networkKey, btn) {
-    // Désactive TOUS les boutons pendant qu'une pub est en cours
-    const allNetworkBtns = document.querySelectorAll('.claim-network-btn');
-    allNetworkBtns.forEach((b) => b.disabled = true);
-    setButtonLoading(btn, true, 'Pub en cours...');
+    stopNetworkCountdown(networkKey);
+    setNetworkButtonLoading(btn, true, 'Pub en cours...');
 
     try {
         await watchAd(networkKey);
@@ -67,6 +173,7 @@ async function handleClaimViaNetwork(networkKey, btn) {
         telegramHapticSuccess();
         pulseBalance();
 
+        setNetworkButtonLoading(btn, false);
         await Promise.all([loadDashboard(), loadClaimStatus()]);
 
         if (typeof reinitTadsBanner === 'function') {
@@ -77,10 +184,9 @@ async function handleClaimViaNetwork(networkKey, btn) {
         showToast(err.message || 'Erreur lors du claim', true);
         telegramHapticError();
 
-        // En cas d'erreur, réactive les boutons
+        setNetworkButtonLoading(btn, false);
+        // En cas d'erreur, resynchronise l'état réel (ne réactive que ce bouton si le cooldown le permet)
         await loadClaimStatus();
-    } finally {
-        setButtonLoading(btn, false);
     }
 }
 
@@ -479,4 +585,5 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCoinflipChoices();
     setupGameButtons();
     loadDashboard();
+    loadClaimStatus();
 });
