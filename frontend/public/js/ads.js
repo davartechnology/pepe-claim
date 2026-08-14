@@ -5,8 +5,8 @@
  * Retirés : Adsxuit (remplacé par Gigapub), Adexium (MAU insuffisant)
  */
 
-const TADS_WIDGET_ID = '10246';
-const TADS_BANNER_WIDGET_ID = '10248';
+const TADS_WIDGET_ID = '11531';
+const TADS_BANNER_WIDGET_ID = '11530';
 const ADSGRAM_BLOCK_ID = '42848';
 
 let adsgramController = null;
