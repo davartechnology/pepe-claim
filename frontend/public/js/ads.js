@@ -89,16 +89,14 @@ function showAdsgramAd() {
         }
 
         controller.show()
-            .then((result) => {
-                if (result.done) {
-                    resolve(true);
-                } else {
-                    reject(new Error('Publicité Adsgram non terminée'));
-                }
+            .then(() => {
+                // La résolution de .show() = pub regardée jusqu'au bout, l'utilisateur mérite la récompense.
+                resolve(true);
             })
             .catch((result) => {
                 console.error('Erreur Adsgram:', result);
-                reject(new Error('Aucune publicité Adsgram disponible'));
+                const message = result?.description || 'Aucune publicité Adsgram disponible';
+                reject(new Error(message));
             });
     });
 }
