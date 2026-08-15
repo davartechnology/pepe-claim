@@ -21,6 +21,11 @@ const AD_NETWORK_CONFIG = {
         domain: 'monetag.com',
         enabled: true
     },
+    onclicka: {
+        name: 'OnClickA',
+        domain: 'onclicka.com',
+        enabled: true
+    },
     adsxuit: {
         name: 'Adsxuit',
         domain: 'adsxuit.com',

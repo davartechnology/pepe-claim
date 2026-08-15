@@ -725,6 +725,12 @@ body {
   background: var(--surface);
 }
 
+.claim-network-btn--soon {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--surface);
+}
+
 /* ===== BANNIÈRE PUBLICITAIRE PERSISTANTE ===== */
 .ad-banner-wrapper {
   padding: 10px 14px 0;

@@ -1,6 +1,6 @@
 /**
  * Intégration des régies publicitaires (rewarded ads)
- * Actifs : TADS, Gigapub, Adsgram, Monetag
+ * Actifs : TADS, Gigapub, Adsgram, Monetag, OnClickA
  * Hors flux Claim (revenu passif) : bannière TADS TGB
  * Retirés : Adsxuit (remplacé par Gigapub), Adexium (MAU insuffisant)
  */
@@ -8,8 +8,11 @@
 const TADS_WIDGET_ID = '11531';
 const TADS_BANNER_WIDGET_ID = '11530';
 const ADSGRAM_BLOCK_ID = '42848';
+const ONCLICKA_SPOT_ID = '6126172';
 
 let adsgramController = null;
+let onclickaShowFn = null;
+let onclickaInitPromise = null;
 
 function getAdsgramController() {
     if (!adsgramController && window.Adsgram) {
@@ -118,6 +121,46 @@ function showMonetagAd() {
 }
 
 /**
+ * OnClickA — init paresseux et mis en cache (le SDK expose une factory async
+ * qui résout la fonction show() réelle, à appeler à chaque claim)
+ */
+function initOnclicka() {
+    if (!onclickaInitPromise && typeof window.initCdTma === 'function') {
+        onclickaInitPromise = window.initCdTma({ id: ONCLICKA_SPOT_ID })
+            .then((show) => { onclickaShowFn = show; })
+            .catch((e) => console.error('Erreur init OnClickA:', e));
+    }
+    return onclickaInitPromise || Promise.reject(new Error('OnClickA SDK non chargé'));
+}
+
+function showOnclickaAd() {
+    return new Promise((resolve, reject) => {
+        if (typeof window.initCdTma !== 'function') {
+            reject(new Error('OnClickA SDK non chargé'));
+            return;
+        }
+
+        initOnclicka()
+            .then(() => {
+                if (typeof onclickaShowFn !== 'function') {
+                    reject(new Error('Aucune publicité OnClickA disponible'));
+                    return;
+                }
+                onclickaShowFn()
+                    .then(() => resolve(true))
+                    .catch((e) => {
+                        console.error('Erreur OnClickA:', e);
+                        reject(new Error('Aucune publicité OnClickA disponible'));
+                    });
+            })
+            .catch((e) => {
+                console.error('Erreur init OnClickA:', e);
+                reject(new Error('OnClickA SDK non chargé'));
+            });
+    });
+}
+
+/**
  * Réinitialise la bannière TGB TADS après un widget fullscreen
  */
 function reinitTadsBanner() {
@@ -140,7 +183,8 @@ const AD_NETWORK_HANDLERS = {
     tads: showTadsAd,
     gigapub: showGigapubAd,
     adsgram: showAdsgramAd,
-    monetag: showMonetagAd
+    monetag: showMonetagAd,
+    onclicka: showOnclickaAd
 };
 
 /**
